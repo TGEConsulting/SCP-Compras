@@ -1,0 +1,50 @@
+{
+  "name": "lq-compras",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gestión de compras y comunicación con proveedores — Productos Lácteos La Quinta",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@clerk/localizations": "^2.8.1",
+    "@clerk/nextjs": "^5.7.5",
+    "@neondatabase/serverless": "^1.2.0",
+    "@vercel/blob": "^2.8.2",
+    "decimal.js": "^10.4.3",
+    "drizzle-orm": "^0.45.4",
+    "fast-xml-parser": "^4.5.0",
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "resend": "^4.0.0",
+    "server-only": "^0.0.1",
+    "ws": "^8.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/ws": "^8.5.12",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.31.11",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
