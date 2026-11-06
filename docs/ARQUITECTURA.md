@@ -61,13 +61,20 @@ Donde faltaba información se eligió la opción **más restrictiva** y configur
 9. Escalamiento en **días hábiles lun–vie** sin calendario de festivos.
 10. Una solicitud genera **una** OC y un único proveedor.
 
-## 6. Preguntas abiertas (necesito tu confirmación antes de la iteración 2)
-- ¿Quién dictamina la aceptación: Almacén cuenta y **Calidad** dictamina, o cualquiera de los dos?
-- ¿Se puede recibir **antes** de que el proveedor confirme la OC?
-- ¿Una OC puede tener **varias facturas** (entregas parciales)?
-- ¿Tolerancia de precio/monto distinta por categoría o proveedor? ¿Quién aprueba sobre qué monto?
-- ¿Requisito de **ficha técnica/certificado vigente** como condición para recibir?
-- ¿RFC receptor y razón social oficiales para validar CFDI? ¿Complementos de pago o notas de crédito?
-- ¿Aprobación adicional por monto (p. ej. Dirección) en solicitudes u OC?
-- ¿Separación de funciones en pagos (quien autoriza ≠ quien registra)?
-- ¿Formato/plantilla de la OC en PDF (logotipo, términos y condiciones)?
+## 6. Decisiones de negocio pendientes (hoja de decisión)
+
+Cada punto indica **cómo se comporta hoy el sistema**, la **propuesta recomendada** y **qué cambia** si eliges otra opción. Nada de esto se ha impuesto como regla de negocio: marca tu decisión en la columna final. Mientras no se decida, se mantiene el comportamiento actual.
+
+| # | Pregunta | Comportamiento actual | Propuesta recomendada | Si eliges otra | Decisión |
+|---|----------|----------------------|-----------------------|----------------|----------|
+| 1 | ¿Quién dictamina la aceptación? | Almacén y Calidad pueden registrar la recepción; el resultado de inspección queda por partida | Almacén cuenta y registra; **Calidad dictamina** las partidas de cadena fría/lácteos | Exigir doble firma: nuevo estatus de recepción «Pendiente de dictamen» (migración + 1 pantalla) | ☐ |
+| 2 | ¿Recibir antes de que el proveedor confirme la OC? | No: solo en Confirmada / En tránsito / Recibida parcial | Mantener, con excepción por Compras con motivo | Permitir siempre: ampliar lista de estatus en un solo lugar | ☐ |
+| 3 | ¿Varias facturas por OC (entregas parciales)? | Una factura activa por OC (índice único) | Una por OC en MVP; si hay entregas parciales frecuentes, permitir una factura por **recepción** | Migración: factura ligada a recepción y conciliación acumulada | ☐ |
+| 4 | Tolerancias y aprobación por monto | Globales: precio 0 %, monto $0.01; autoriza Compras/Finanzas con motivo | Mantener 0 % de precio; definir **monto límite** (p. ej. diferencias > $X requieren Finanzas) | Tolerancia por categoría/proveedor: tabla nueva y pantalla | ☐ |
+| 5 | Ficha técnica/certificado vigente para recibir | Solo se valida vigencia de documentos del proveedor (autorizado) | Exigir certificado vigente solo para materia prima láctea y empaques en contacto con producto | Bloquear recepción por producto: campo nuevo en producto | ☐ |
+| 6 | RFC receptor, razón social, notas de crédito y complementos de pago | RFC receptor configurable en Administración → Parámetros (vacío = no valida). Se **rechazan** notas de crédito, complementos de pago y facturas con retenciones | Capturar el RFC oficial antes de producción. Notas de crédito: iteración 3 | Soportar retenciones (fletes) y notas de crédito: ampliar conciliación | ☐ |
+| 7 | Aprobación adicional por monto (Dirección) | Solo Jefe de área aprueba la solicitud | Añadir segundo aprobador a partir de un monto a definir | Flujo de aprobación por niveles: tabla de reglas | ☐ |
+| 8 | Separación de funciones en pagos | Un usuario con rol Finanzas puede autorizar y también registrar | **Quien autoriza ≠ quien registra el pago** (control interno estándar) | Mantener (equipo pequeño) | ☐ |
+| 9 | Formato de la OC en PDF | Hoja imprimible con datos básicos (Imprimir / Guardar PDF) | Enviar logotipo, domicilio fiscal y términos y condiciones | — | ☐ |
+
+**Punto 8 es un ajuste pequeño** (una validación en `registerPayment`); lo implemento en cuanto lo confirmes.
