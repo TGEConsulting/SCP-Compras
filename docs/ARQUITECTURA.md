@@ -72,9 +72,15 @@ Cada punto indica **cómo se comporta hoy el sistema**, la **propuesta recomenda
 | 3 | ¿Varias facturas por OC (entregas parciales)? | Una factura activa por OC (índice único) | Una por OC en MVP; si hay entregas parciales frecuentes, permitir una factura por **recepción** | Migración: factura ligada a recepción y conciliación acumulada | ☐ |
 | 4 | Tolerancias y aprobación por monto | Globales: precio 0 %, monto $0.01; autoriza Compras/Finanzas con motivo | Mantener 0 % de precio; definir **monto límite** (p. ej. diferencias > $X requieren Finanzas) | Tolerancia por categoría/proveedor: tabla nueva y pantalla | ☐ |
 | 5 | Ficha técnica/certificado vigente para recibir | Solo se valida vigencia de documentos del proveedor (autorizado) | Exigir certificado vigente solo para materia prima láctea y empaques en contacto con producto | Bloquear recepción por producto: campo nuevo en producto | ☐ |
-| 6 | RFC receptor, razón social, notas de crédito y complementos de pago | RFC receptor configurable en Administración → Parámetros (vacío = no valida). Se **rechazan** notas de crédito, complementos de pago y facturas con retenciones | Capturar el RFC oficial antes de producción. Notas de crédito: iteración 3 | Soportar retenciones (fletes) y notas de crédito: ampliar conciliación | ☐ |
+| 6 | RFC receptor, razón social, notas de crédito y complementos de pago | RFC receptor configurable en Administración → Parámetros (vacío = no valida). Se **rechazan** notas de crédito, complementos de pago y facturas con retenciones | RFC oficial **PLQ9002286Q6** ya capturado en staging; capturarlo también en producción (variable `COMPANY_RFC` al sembrar o Administración → Parámetros). Notas de crédito: iteración 3 | Soportar retenciones (fletes) y notas de crédito: ampliar conciliación | ☐ |
 | 7 | Aprobación adicional por monto (Dirección) | Solo Jefe de área aprueba la solicitud | Añadir segundo aprobador a partir de un monto a definir | Flujo de aprobación por niveles: tabla de reglas | ☐ |
 | 8 | Separación de funciones en pagos | Un usuario con rol Finanzas puede autorizar y también registrar | **Quien autoriza ≠ quien registra el pago** (control interno estándar) | Mantener (equipo pequeño) | ☐ |
 | 9 | Formato de la OC en PDF | Hoja imprimible con datos básicos (Imprimir / Guardar PDF) | Enviar logotipo, domicilio fiscal y términos y condiciones | — | ☐ |
 
 **Punto 8 es un ajuste pequeño** (una validación en `registerPayment`); lo implemento en cuanto lo confirmes.
+
+## 7. Estado de ambientes (6-nov-2026)
+- **GitHub:** `TGEConsulting/SCP-Compras`, rama `main`.
+- **Neon (proyecto «LQ Compras»):** rama `main` = producción (vacía, sin migrar); rama `staging` = pruebas, migrada y sembrada.
+- **Vercel (`scp-compras`):** variables de *Preview* apuntan a `staging`; Blob privado `scp-compras-archivos`.
+- **Pendiente:** llaves de Clerk, `APP_URL`, `RESEND_API_KEY` y variables de producción (con confirmación explícita antes de migrar `main`).

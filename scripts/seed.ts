@@ -38,7 +38,7 @@ async function main() {
     { key: "tolerancia.precio_pct", value: 0, description: "% de diferencia de precio unitario permitido sin autorización (0 = exacto)" },
     { key: "tolerancia.monto_abs", value: 0.01, description: "Tolerancia absoluta en pesos por redondeo" },
     { key: "recepcion.sobreentrega_pct", value: 0, description: "% de sobre-entrega aceptable sobre lo ordenado" },
-    { key: "empresa.rfc", value: sql`'null'::jsonb`, description: "RFC receptor esperado en facturas (null = no validar). CONFIGURAR antes de producción" },
+    { key: "empresa.rfc", value: process.env.COMPANY_RFC ? sql`${JSON.stringify(process.env.COMPANY_RFC.toUpperCase())}::jsonb` : sql`'null'::jsonb`, description: "RFC receptor esperado en facturas (null = no validar). CONFIGURAR antes de producción" },
     { key: "factura.recordatorios_horas", value: [24, 48], description: "Horas tras la recepción para recordar al proveedor" },
     { key: "factura.escalamiento_dias_habiles", value: 5, description: "Días hábiles para escalar a Compras y Contabilidad" },
     { key: "factura.max_archivo_mb", value: 10, description: "Tamaño máximo por archivo de factura (MB)" },
