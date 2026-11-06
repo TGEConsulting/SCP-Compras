@@ -85,3 +85,7 @@ Permisos verificados en servidor en cada página/acción · aislamiento por prov
 
 ## Licencia / uso
 Software interno de Productos Lácteos La Quinta S.A. de C.V.
+
+## Ambientes
+- `main` → producción (aún sin configurar). Las ramas (`preview/*`) generan Preview en Vercel contra la rama `staging` de Neon.
+- Nunca migrar ni sembrar la rama `main` de Neon sin confirmación explícita.
