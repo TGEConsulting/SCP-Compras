@@ -177,3 +177,22 @@ export async function dashboardCounts(s: Session) {
   }
   return out;
 }
+
+/** Tablero de seguimiento para Compras/Finanzas: lo que está atorado y cuánto dinero detiene. */
+export async function seguimiento() {
+  const [sinFactura, conProblema, sinConfirmar, porPagar] = await Promise.all([
+    db.select({ id: receipts.id, folio: receipts.folio, orderId: purchaseOrders.id, orderFolio: purchaseOrders.folio, supplier: suppliers.legalName, receivedAt: receipts.receivedAt, total: purchaseOrders.total })
+      .from(receipts).innerJoin(purchaseOrders, eq(purchaseOrders.id, receipts.orderId)).innerJoin(suppliers, eq(suppliers.id, purchaseOrders.supplierId))
+      .where(eq(receipts.status, "PENDIENTE_FACTURA")).orderBy(asc(receipts.receivedAt)).limit(200),
+    db.select({
+      id: invoices.id, number: invoices.invoiceNumber, status: invoices.status, total: invoices.total, createdAt: invoices.createdAt, orderFolio: purchaseOrders.folio, supplier: suppliers.legalName,
+      detail: sql<string | null>`(select d.message from invoice_differences d where d.invoice_id = ${invoices.id} order by d.requires_authorization desc, d.detected_at limit 1)`,
+    }).from(invoices).innerJoin(purchaseOrders, eq(purchaseOrders.id, invoices.orderId)).innerJoin(suppliers, eq(suppliers.id, invoices.supplierId))
+      .where(inArray(invoices.status, ["CON_DIFERENCIA", "BLOQUEADA", "EN_VALIDACION"])).orderBy(asc(invoices.createdAt)).limit(200),
+    db.select({ id: purchaseOrders.id, folio: purchaseOrders.folio, supplier: suppliers.legalName, sentAt: purchaseOrders.sentAt, total: purchaseOrders.total })
+      .from(purchaseOrders).innerJoin(suppliers, eq(suppliers.id, purchaseOrders.supplierId))
+      .where(eq(purchaseOrders.status, "ENVIADA_PROVEEDOR")).orderBy(asc(purchaseOrders.sentAt)).limit(200),
+    db.select({ n: sql<number>`count(*)`, total: sql<string>`coalesce(sum(${invoices.total}), 0)` }).from(invoices).where(eq(invoices.status, "LISTA_PARA_PAGO")),
+  ]);
+  return { sinFactura, conProblema, sinConfirmar, porPagar: { n: Number(porPagar[0]?.n ?? 0), total: porPagar[0]?.total ?? "0" } };
+}

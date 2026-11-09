@@ -9,6 +9,7 @@ const NAV: { href: string; label: string; any: Permission[] }[] = [
   { href: "/ordenes", label: "Órdenes de compra", any: ["oc:ver_todas"] },
   { href: "/recepcion", label: "Recepción", any: ["recepcion:registrar", "recepcion:ver"] },
   { href: "/facturas", label: "Facturas", any: ["factura:ver_todas"] },
+  { href: "/seguimiento", label: "Seguimiento", any: ["factura:ver_todas"] },
   { href: "/pagos", label: "Pagos", any: ["pago:ver"] },
   { href: "/admin", label: "Administración", any: ["admin:usuarios", "admin:catalogos"] },
   { href: "/proveedor", label: "Mis órdenes", any: ["proveedor:portal"] },
