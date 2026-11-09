@@ -143,7 +143,25 @@ def s8(b):
     assert "Seguimiento" in body and "Monto detenido" in body, "El tablero de seguimiento no cargó"
     page.screenshot(path=os.path.join(OUT, "s8-seguimiento.png"), full_page=True)
 
-STEPS = {"8": s8, "N": sN, "7": s7, "6": s6, "5": s5, "1": s1, "2": s2, "3": s3, "4": s4}
+def s9(b):
+    """Descarga segura: el XML de un tercero se baja como adjunto y con CSP sandbox; el PDF sigue en línea."""
+    ctx, page = new_page(b, "finanzas", "s9")
+    page.goto(BASE + "/facturas"); page.wait_for_load_state("networkidle")
+    page.get_by_role("link", name=re.compile(st["factura1"]["folio"])).first.click(); page.wait_for_load_state("networkidle")
+    for nombre, es_xml in (("Descargar XML", True), ("Abrir PDF", False)):
+        href = page.get_by_role("link", name=nombre).first.get_attribute("href")
+        r = page.request.get(href if href.startswith("http") else BASE + href)
+        cd, csp = r.headers.get("content-disposition", ""), r.headers.get("content-security-policy", "")
+        print(f"S9 {nombre}: status={r.status} disposicion={cd.split(';')[0]} csp_sandbox={'sandbox' in csp}")
+        assert r.status == 200, "la descarga firmada debe funcionar"
+        assert "sandbox" in csp, "falta CSP sandbox"
+        assert cd.startswith("attachment" if es_xml else "inline"), "disposición incorrecta"
+    # Un enlace manipulado (firma alterada) debe rechazarse
+    href = page.get_by_role("link", name="Descargar XML").first.get_attribute("href")
+    mal = href[:-3] + ("aaa" if not href.endswith("aaa") else "bbb")
+    print("S9 firma alterada ->", page.request.get(mal if mal.startswith("http") else BASE + mal).status)
+
+STEPS = {"9": s9, "8": s8, "N": sN, "7": s7, "6": s6, "5": s5, "1": s1, "2": s2, "3": s3, "4": s4}
 if __name__ == "__main__":
     with sync_playwright() as p:
         b = p.chromium.launch()

@@ -91,7 +91,9 @@ export const upsertUserSchema = z.object({
   areaId: optId, supplierId: optId,
   roles: z.array(z.enum(["SOLICITANTE", "JEFE_AREA", "COMPRAS", "ALMACEN", "CALIDAD", "FINANZAS", "PROVEEDOR", "ADMIN"])).min(1, "Asigna al menos un rol"),
   active: z.boolean().default(true),
-}).refine((d) => !d.roles.includes("PROVEEDOR") || !!d.supplierId, { path: ["supplierId"], message: "Un usuario proveedor debe ligarse a un proveedor" });
+}).refine((d) => !d.roles.includes("PROVEEDOR") || !!d.supplierId, { path: ["supplierId"], message: "Un usuario proveedor debe ligarse a un proveedor" })
+  .refine((d) => !d.roles.includes("PROVEEDOR") || d.roles.length === 1, { path: ["roles"], message: "El rol Proveedor no se combina con roles internos" })
+  .refine((d) => d.roles.includes("PROVEEDOR") || !d.supplierId, { path: ["supplierId"], message: "Solo los usuarios con rol Proveedor se ligan a un proveedor" });
 export const upsertSupplierSchema = z.object({
   supplierId: optId,
   code: z.string().trim().min(2).max(20),

@@ -1,6 +1,6 @@
 import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { db } from "@/db";
@@ -40,7 +40,9 @@ export const getSession = cache(async (): Promise<Session | null> => {
     if (!email || email.verification?.status !== "verified") return null;
     const pre = (await db.select().from(users).where(eq(users.email, email.emailAddress.toLowerCase())).limit(1))[0];
     if (!pre || !pre.active || pre.authId) return null; // no pre-registrado, inactivo o ya enlazado a otra cuenta
-    await db.update(users).set({ authId, updatedAt: new Date() }).where(eq(users.id, pre.id));
+    // Atómico: solo enlaza si sigue libre (dos inicios de sesión simultáneos no pueden quedarse con el mismo usuario).
+    const linked = await db.update(users).set({ authId, updatedAt: new Date() }).where(and(eq(users.id, pre.id), isNull(users.authId))).returning({ id: users.id });
+    if (linked.length === 0) return null;
     row = { ...pre, authId };
   }
   if (!row.active) return null;

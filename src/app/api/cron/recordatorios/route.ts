@@ -1,4 +1,5 @@
 import { and, eq, sql } from "drizzle-orm";
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { invoices, purchaseOrders, receipts } from "@/db/schema";
@@ -16,7 +17,9 @@ export const maxDuration = 60;
  * tras N días hábiles sin factura. `dedupe_key` UNIQUE hace el proceso idempotente (re-ejecutarlo no duplica correos).
  */
 export async function GET(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}` || !process.env.CRON_SECRET)
+  const expected = Buffer.from(`Bearer ${process.env.CRON_SECRET ?? ""}`);
+  const got = Buffer.from(req.headers.get("authorization") ?? "");
+  if (!process.env.CRON_SECRET || got.length !== expected.length || !timingSafeEqual(got, expected))
     return new NextResponse("No autorizado", { status: 401 });
 
   const cfg = await getSettings(db, ["factura.recordatorios_horas", "factura.escalamiento_dias_habiles"]);

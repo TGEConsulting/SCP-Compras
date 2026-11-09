@@ -30,10 +30,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   const blob = await readPrivate(att.blobPathname);
   if (!blob || blob.statusCode !== 200) return new NextResponse("Archivo no disponible", { status: 404 });
+  // XML subido por terceros NUNCA se muestra en línea desde el origen de la app (un XML con XHTML/XSLT podría ejecutar script):
+  // se descarga como adjunto y, además, con CSP «sandbox».
+  const isXml = att.contentType.includes("xml");
   return new NextResponse(blob.stream, {
     headers: {
       "Content-Type": att.contentType,
-      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(att.fileName)}`,
+      "Content-Disposition": `${isXml ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(att.fileName)}`,
+      "Content-Security-Policy": "sandbox; default-src 'none'",
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
     },

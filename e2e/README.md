@@ -11,7 +11,7 @@ npx tsx scripts/e2e-usuarios.ts up      # requiere CLERK_SECRET_KEY (sk_test_) y
 # 2) Recorrido (Python + Playwright)
 export E2E_BASE_URL='https://<alias-del-preview>.vercel.app'
 export E2E_SHARE_URL='https://...?_vercel_share=...'   # solo si el Preview está protegido
-python3 e2e/flow.py 1 2 3 4 5 6 7 N 8                   # pasos: 1 solicitud · 2 aprobar · 3 OC · 4 proveedor · 5 recepción · 6 factura · 7 pago · N caso bloqueo · 8 seguimiento
+python3 e2e/flow.py 1 2 3 4 5 6 7 N 8 9                   # pasos: 1 solicitud · 2 aprobar · 3 OC · 4 proveedor · 5 recepción · 6 factura · 7 pago · N caso bloqueo · 8 seguimiento · 9 descarga segura
 
 # 3) Limpieza
 npx tsx scripts/e2e-usuarios.ts down
