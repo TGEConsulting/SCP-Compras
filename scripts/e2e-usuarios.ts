@@ -4,9 +4,11 @@
  * up   → crea 6 usuarios en Clerk (correos +clerk_test, código 424242) y los liga a los usuarios demo (@demo.lq).
  * down → los borra de Clerk y devuelve los usuarios demo a su correo original (sin vínculo).
  * Se niega a correr si la base no contiene los usuarios demo (p. ej. producción).
+ * Si alguien editó/borró un usuario demo, NO se toca a otros usuarios: se crea un usuario QA propio (solo para el proveedor)
+ * y `down` lo desactiva. Para los internos, si falta el demo se aborta con un mensaje claro.
  */
 import { Pool, neonConfig } from "@neondatabase/serverless";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
 import * as s from "../src/db/schema";
@@ -43,12 +45,32 @@ async function main() {
     for (const [demoEmail, qa] of Object.entries(MAP)) {
       const found = await clerk(`/users?email_address=${encodeURIComponent(qa)}`);
       if (!found.length) await clerk("/users", { method: "POST", body: JSON.stringify({ email_address: [qa], password: pw, skip_password_checks: true }) });
-      await db.update(s.users).set({ email: qa, authId: null }).where(eq(s.users.email, demoEmail));
+      const upd = await db.update(s.users).set({ email: qa, authId: null }).where(eq(s.users.email, demoEmail)).returning({ id: s.users.id });
+      const exists = upd.length > 0 || (await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.email, qa))).length > 0;
+      if (!exists) {
+        if (!qa.includes("proveedor")) throw new Error(`Falta el usuario demo ${demoEmail} (¿lo editaron?). Restáuralo antes de correr el E2E.`);
+        const [sup] = await db.select({ id: s.suppliers.id }).from(s.suppliers).where(eq(s.suppliers.rfc, "AAA010101AAA"));
+        const [role] = await db.select({ id: s.roles.id }).from(s.roles).where(eq(s.roles.code, "PROVEEDOR"));
+        if (!sup || !role) throw new Error("No encontré el proveedor demo (AAA010101AAA) o el rol PROVEEDOR.");
+        const [u] = await db.insert(s.users).values({ email: qa, name: "QA Proveedor (E2E)", supplierId: sup.id, active: true }).returning({ id: s.users.id });
+        await db.insert(s.userRoles).values({ userId: u!.id, roleId: role.id });
+        console.log("creado usuario QA propio", qa);
+      } else {
+        await db.update(s.users).set({ active: true }).where(and(eq(s.users.email, qa), eq(s.users.active, false)));
+      }
       console.log("listo", qa);
     }
   } else {
     for (const [demoEmail, qa] of Object.entries(MAP)) {
       for (const u of await clerk(`/users?email_address=${encodeURIComponent(qa)}`)) await clerk(`/users/${u.id}`, { method: "DELETE" });
+      if (qa.includes("proveedor")) {
+        // Si el demo original ya no existe, el usuario QA propio se desactiva (no se borra: la bitácora lo referencia).
+        const demoStill = await db.select({ id: s.users.id }).from(s.users).where(eq(s.users.email, demoEmail));
+        if (demoStill.length === 0) {
+          const [qaRow] = await db.select({ id: s.users.id, name: s.users.name }).from(s.users).where(eq(s.users.email, qa));
+          if (qaRow && qaRow.name.startsWith("QA Proveedor")) { await db.update(s.users).set({ authId: null, active: false }).where(eq(s.users.id, qaRow.id)); console.log("desactivado", qa); continue; }
+        }
+      }
       await db.update(s.users).set({ email: demoEmail, authId: null }).where(eq(s.users.email, qa));
       console.log("restaurado", demoEmail);
     }

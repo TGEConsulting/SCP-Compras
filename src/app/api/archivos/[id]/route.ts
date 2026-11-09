@@ -37,7 +37,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     headers: {
       "Content-Type": att.contentType,
       "Content-Disposition": `${isXml ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(att.fileName)}`,
-      "Content-Security-Policy": "sandbox; default-src 'none'",
+      // `sandbox` solo en XML: en un PDF bloquearía el visor del navegador.
+      ...(isXml ? { "Content-Security-Policy": "sandbox; default-src 'none'" } : {}),
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
     },

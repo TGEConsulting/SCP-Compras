@@ -154,7 +154,7 @@ def s9(b):
         cd, csp = r.headers.get("content-disposition", ""), r.headers.get("content-security-policy", "")
         print(f"S9 {nombre}: status={r.status} disposicion={cd.split(';')[0]} csp_sandbox={'sandbox' in csp}")
         assert r.status == 200, "la descarga firmada debe funcionar"
-        assert "sandbox" in csp, "falta CSP sandbox"
+        assert ("sandbox" in csp) == es_xml, "CSP sandbox solo en XML (en PDF bloquea el visor)"
         assert cd.startswith("attachment" if es_xml else "inline"), "disposición incorrecta"
     # Un enlace manipulado (firma alterada) debe rechazarse
     href = page.get_by_role("link", name="Descargar XML").first.get_attribute("href")
